@@ -89,6 +89,22 @@ namespace PDR.PatientBookingApi.Controllers
             return StatusCode(200);
         }
 
+
+        [HttpDelete("patient/{identificationNumber}/{Id}")]
+        public IActionResult DeletePatientAppointment(long identificationNumber, Guid Id)
+        {
+            var booking = _context.Order.Where(x => x.Patient.Id == identificationNumber && x.Id == Id).FirstOrDefault();
+
+            if (booking == null)
+                return StatusCode(400, new { message = "Booking does not exist" });
+           
+            _context.Order.Remove(booking);
+            _context.SaveChanges();
+            
+            return StatusCode(200, new { message = "Booking Removed" });
+        }
+
+
         public class NewBooking
         {
             public Guid Id { get; set; }
