@@ -1,8 +1,10 @@
 ﻿using PDR.PatientBooking.Data;
 using PDR.PatientBooking.Service.PatientServices.Requests;
 using PDR.PatientBooking.Service.Validation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 
 namespace PDR.PatientBooking.Service.PatientServices.Validation
 {
@@ -28,6 +30,9 @@ namespace PDR.PatientBooking.Service.PatientServices.Validation
             if (ClinicNotFound(request, ref result))
                 return result;
 
+            if (ValidateEmailAddress(request, ref result))
+                return result;
+
             return result;
         }
 
@@ -42,7 +47,10 @@ namespace PDR.PatientBooking.Service.PatientServices.Validation
                 errors.Add("LastName must be populated");
 
             if (string.IsNullOrEmpty(request.Email))
+            {
                 errors.Add("Email must be populated");
+                errors.Add("Email must be a valid email address");
+            }
 
             if (errors.Any())
             {
@@ -76,6 +84,21 @@ namespace PDR.PatientBooking.Service.PatientServices.Validation
             }
 
             return false;
+        }
+
+        private bool ValidateEmailAddress(AddPatientRequest request, ref PdrValidationResult result)
+        {
+            try
+            {
+                MailAddress m = new MailAddress(request.Email);
+                return true;
+            }
+            catch (FormatException)
+            {
+                result.PassedValidation = false;
+                result.Errors.Add("Email must be a valid email address");
+                return false;
+            }
         }
     }
 }
