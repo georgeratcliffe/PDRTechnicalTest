@@ -51,6 +51,9 @@ namespace PDR.PatientBookingApi.Controllers
         [HttpPost()]
         public IActionResult AddBooking(NewBooking newBooking)
         {
+            if (newBooking.StartTime < DateTime.Now)
+                return StatusCode(400, new { message = "Cannot book past date" });
+
             var bookingId = new Guid();
             var bookingStartTime = newBooking.StartTime;
             var bookingEndTime = newBooking.EndTime;
@@ -59,6 +62,14 @@ namespace PDR.PatientBookingApi.Controllers
             var bookingDoctorId = newBooking.DoctorId;
             var bookingDoctor = _context.Doctor.FirstOrDefault(x => x.Id == newBooking.DoctorId);
             var bookingSurgeryType = _context.Patient.FirstOrDefault(x => x.Id == bookingPatientId).Clinic.SurgeryType;
+
+            if (bookingDoctor.Orders.Any(o =>
+             (o.StartTime > bookingStartTime && o.StartTime < bookingEndTime)
+              || (o.EndTime > bookingStartTime && o.EndTime < bookingEndTime)
+              || (o.StartTime < bookingStartTime && o.EndTime > bookingEndTime)
+              || (o.StartTime > bookingStartTime && o.EndTime < bookingEndTime)
+            ))
+                return StatusCode(400, new { message = "Doctor is busy" });
 
             var myBooking = new Order
             {
