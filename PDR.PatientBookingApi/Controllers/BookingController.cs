@@ -20,7 +20,7 @@ namespace PDR.PatientBookingApi.Controllers
         }
 
         [HttpGet("patient/{identificationNumber}/next")]
-        public IActionResult GetPatientNextAppointnemtn(long identificationNumber)
+        public IActionResult GetPatientNextAppointment(long identificationNumber)
         {
             // Leave out Where(x => x.StartTime > DateTime.Now) filter to remove expired bookings
             var bookings = _context.Order.Where(x => x.PatientId == identificationNumber).OrderByDescending(x => x.StartTime).ToList();
@@ -116,19 +116,20 @@ namespace PDR.PatientBookingApi.Controllers
             public long DoctorId { get; set; }
         }
 
-        private static MyOrderResult UpdateLatestBooking(List<Order> bookings2, int i)
-        {
-            MyOrderResult latestBooking;
-            latestBooking = new MyOrderResult();
-            latestBooking.Id = bookings2[i].Id;
-            latestBooking.DoctorId = bookings2[i].DoctorId;
-            latestBooking.StartTime = bookings2[i].StartTime;
-            latestBooking.EndTime = bookings2[i].EndTime;
-            latestBooking.PatientId = bookings2[i].PatientId;
-            latestBooking.SurgeryType = (int)bookings2[i].GetSurgeryType();
+        // No update/PUT method requested so can ignore this code
+        //private static MyOrderResult UpdateLatestBooking(List<Order> bookings2, int i)
+        //{
+        //    MyOrderResult latestBooking;
+        //    latestBooking = new MyOrderResult();
+        //    latestBooking.Id = bookings2[i].Id;
+        //    latestBooking.DoctorId = bookings2[i].DoctorId;
+        //    latestBooking.StartTime = bookings2[i].StartTime;
+        //    latestBooking.EndTime = bookings2[i].EndTime;
+        //    latestBooking.PatientId = bookings2[i].PatientId;
+        //    latestBooking.SurgeryType = (int)bookings2[i].GetSurgeryType();
 
-            return latestBooking;
-        }
+        //    return latestBooking;
+        //}
 
         private class MyOrderResult
         {
