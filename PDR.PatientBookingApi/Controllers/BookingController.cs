@@ -83,10 +83,10 @@ namespace PDR.PatientBookingApi.Controllers
                 SurgeryType = (int)bookingSurgeryType
             };
 
-            _context.Order.AddRange(new List<Order> { myBooking });
+            _context.Order.Add(myBooking);
             _context.SaveChanges();
 
-            return StatusCode(200);
+            return StatusCode(201);
         }
 
 
