@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using PDR.PatientBooking.Data;
 using PDR.PatientBooking.Data.Models;
 using System;
@@ -21,31 +22,29 @@ namespace PDR.PatientBookingApi.Controllers
         [HttpGet("patient/{identificationNumber}/next")]
         public IActionResult GetPatientNextAppointnemtn(long identificationNumber)
         {
-            var bockings = _context.Order.OrderBy(x => x.StartTime).ToList();
+            // Leave out Where(x => x.StartTime > DateTime.Now) filter to remove expired bookings
+            var bookings = _context.Order.Where(x => x.PatientId == identificationNumber).OrderByDescending(x => x.StartTime).ToList();
 
-            if (bockings.Where(x => x.Patient.Id == identificationNumber).Count() == 0)
+            if (bookings.Count == 0)
+                return StatusCode(400, new { message = "No bookings found" });
+
+            if (HttpContext.Session.GetString("Starttime") != null)
             {
-                return StatusCode(502);
+                DateTime startTime = DateTime.Parse(HttpContext.Session.GetString("Starttime"));
+
+                if (bookings.Where(o => o.StartTime > startTime).Count() > 0)
+                    bookings = bookings.Where(o => o.StartTime > startTime).OrderBy(x => x.StartTime).ToList();
             }
-            else
+
+            var booking = bookings.FirstOrDefault();
+
+            return Ok(new
             {
-                var bookings2 = bockings.Where(x => x.PatientId == identificationNumber);
-                if (bookings2.Where(x => x.StartTime > DateTime.Now).Count() == 0)
-                {
-                    return StatusCode(502);
-                }
-                else
-                {
-                    var bookings3 = bookings2.Where(x => x.StartTime > DateTime.Now);
-                    return Ok(new
-                    {
-                        bookings3.First().Id,
-                        bookings3.First().DoctorId,
-                        bookings3.First().StartTime,
-                        bookings3.First().EndTime
-                    });
-                }
-            }
+                booking.Id,
+                booking.DoctorId,
+                booking.StartTime,
+                booking.EndTime
+            });
         }
 
         [HttpPost()]
@@ -68,6 +67,7 @@ namespace PDR.PatientBookingApi.Controllers
               || (o.EndTime > bookingStartTime && o.EndTime < bookingEndTime)
               || (o.StartTime < bookingStartTime && o.EndTime > bookingEndTime)
               || (o.StartTime > bookingStartTime && o.EndTime < bookingEndTime)
+              || (o.StartTime == bookingStartTime && o.EndTime == bookingEndTime)
             ))
                 return StatusCode(400, new { message = "Doctor is busy" });
 
@@ -97,10 +97,12 @@ namespace PDR.PatientBookingApi.Controllers
 
             if (booking == null)
                 return StatusCode(400, new { message = "Booking does not exist" });
-           
+
+            HttpContext.Session.SetString("Starttime", booking.StartTime.ToString());
+
             _context.Order.Remove(booking);
             _context.SaveChanges();
-            
+
             return StatusCode(200, new { message = "Booking Removed" });
         }
 
