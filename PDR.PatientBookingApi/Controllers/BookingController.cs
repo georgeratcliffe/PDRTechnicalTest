@@ -47,6 +47,25 @@ namespace PDR.PatientBookingApi.Controllers
             });
         }
 
+
+        [HttpGet("booking/{Id}")]
+        public IActionResult GetPatientBooking(Guid Id)
+        {
+            var booking = _context.Order.Where(x => x.Id == Id).FirstOrDefault();
+
+            if (booking == null)
+                return StatusCode(400, new { message = "No bookings found" });
+
+            return Ok(new
+            {
+                booking.Id,
+                booking.DoctorId,
+                booking.StartTime,
+                booking.EndTime
+            });
+        }
+
+
         [HttpPost()]
         public IActionResult AddBooking(NewBooking newBooking)
         {
@@ -86,7 +105,13 @@ namespace PDR.PatientBookingApi.Controllers
             _context.Order.Add(myBooking);
             _context.SaveChanges();
 
-            return StatusCode(201);
+            return CreatedAtAction("GetPatientBooking", new { id = myBooking.Id }, new
+            {
+                myBooking.Id,
+                myBooking.DoctorId,
+                myBooking.StartTime,
+                myBooking.EndTime
+            });
         }
 
 

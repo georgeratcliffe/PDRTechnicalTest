@@ -38,6 +38,10 @@ namespace PDR.PatientBookingApi
                     .UseLazyLoadingProxies()
             );
 
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "PatientBookingApi", Version = "v1" });
