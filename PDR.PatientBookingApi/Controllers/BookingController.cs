@@ -26,7 +26,7 @@ namespace PDR.PatientBookingApi.Controllers
             var bookings = _context.Order.Where(x => x.PatientId == identificationNumber).OrderByDescending(x => x.StartTime).ToList();
 
             if (bookings.Count == 0)
-                return StatusCode(400, new { message = "No bookings found" });
+                return StatusCode(404, new { message = "No bookings found" });
 
             if (HttpContext.Session.GetString("Starttime") != null)
             {
@@ -54,7 +54,7 @@ namespace PDR.PatientBookingApi.Controllers
             var booking = _context.Order.Where(x => x.Id == Id).FirstOrDefault();
 
             if (booking == null)
-                return StatusCode(400, new { message = "No bookings found" });
+                return StatusCode(404, new { message = "No bookings found" });
 
             return Ok(new
             {
@@ -121,7 +121,7 @@ namespace PDR.PatientBookingApi.Controllers
             var booking = _context.Order.Where(x => x.Patient.Id == identificationNumber && x.Id == Id).FirstOrDefault();
 
             if (booking == null)
-                return StatusCode(400, new { message = "Booking does not exist" });
+                return StatusCode(404, new { message = "Booking does not exist" });
 
             HttpContext.Session.SetString("Starttime", booking.StartTime.ToString());
 
